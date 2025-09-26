@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEXUS | Centro de Control</title>
+    <title>D3mon | Panel de Control</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         /* === RESET Y VARIABLES === */
@@ -108,6 +108,8 @@
             background: linear-gradient(45deg, var(--neon-green), var(--neon-cyan));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            font-family: 'Courier New', monospace;
+            letter-spacing: 2px;
         }
 
         .status {
@@ -125,31 +127,6 @@
             animation: blink 1.5s infinite;
         }
 
-        .main-nav {
-            display: flex;
-            gap: 0.5rem;
-            flex-wrap: wrap;
-        }
-
-        .nav-btn {
-            background: transparent;
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            padding: 0.75rem 1.5rem;
-            border-radius: 6px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .nav-btn.active {
-            background: rgba(0, 255, 65, 0.1);
-            border-color: var(--neon-green);
-            color: var(--neon-green);
-        }
-
         /* === CONTENIDO PRINCIPAL === */
         .amoled-main {
             flex: 1;
@@ -157,15 +134,6 @@
             margin: 0 auto;
             padding: 2rem;
             width: 100%;
-        }
-
-        .content-section {
-            display: none;
-        }
-
-        .content-section.active {
-            display: block;
-            animation: fadeIn 0.5s ease-in;
         }
 
         .section-header {
@@ -179,51 +147,107 @@
             background: linear-gradient(45deg, var(--neon-green), var(--neon-cyan));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            font-family: 'Courier New', monospace;
         }
 
-        /* === GRIDS Y CARDS === */
-        .dashboard-grid,
-        .apps-grid {
+        .section-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        /* === GRID DE HERRAMIENTAS === */
+        .tools-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
             gap: 1.5rem;
             margin-top: 2rem;
         }
 
-        .card {
+        .tool-card {
             background: var(--amoled-card);
             border: 1px solid var(--border-color);
             border-radius: 12px;
             padding: 1.5rem;
             transition: all 0.3s ease;
-        }
-
-        .card:hover {
-            border-color: var(--neon-green);
-            transform: translateY(-2px);
-        }
-
-        .app-card {
-            text-align: center;
             cursor: pointer;
+            text-align: center;
         }
 
-        .app-icon {
-            width: 60px;
-            height: 60px;
+        .tool-card:hover {
+            border-color: var(--neon-green);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 255, 65, 0.1);
+        }
+
+        .tool-icon {
+            width: 70px;
+            height: 70px;
             margin: 0 auto 1rem;
             background: rgba(0, 255, 65, 0.1);
-            border-radius: 15px;
+            border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.5rem;
+            font-size: 2rem;
             color: var(--neon-green);
+            transition: all 0.3s ease;
         }
 
-        .app-title {
-            font-size: 1.1rem;
+        .tool-card:hover .tool-icon {
+            background: rgba(0, 255, 65, 0.2);
+            transform: scale(1.1);
+        }
+
+        .tool-title {
+            font-size: 1.3rem;
             margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .tool-description {
+            color: var(--text-secondary);
+            line-height: 1.5;
+            margin-bottom: 1rem;
+        }
+
+        .tool-category {
+            display: inline-block;
+            background: rgba(0, 255, 65, 0.2);
+            color: var(--neon-green);
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            border: 1px solid var(--neon-green);
+        }
+
+        /* === STATS CARDS === */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: var(--amoled-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: var(--neon-green);
+            font-family: 'Courier New', monospace;
+        }
+
+        .stat-label {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
         }
 
         /* === FOOTER === */
@@ -241,6 +265,7 @@
             justify-content: space-between;
             align-items: center;
             color: var(--text-secondary);
+            font-family: 'Courier New', monospace;
         }
 
         /* === ANIMACIONES === */
@@ -266,13 +291,20 @@
                 text-align: center;
             }
             
-            .dashboard-grid,
-            .apps-grid {
+            .tools-grid {
                 grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
             }
             
             .amoled-main {
                 padding: 1rem;
+            }
+            
+            .section-header h1 {
+                font-size: 2rem;
             }
         }
     </style>
@@ -288,45 +320,48 @@
         <header class="amoled-header">
             <div class="header-content">
                 <div class="logo">
-                    <span class="logo-icon">⟁</span>
-                    <span class="logo-text">NEXUS CONTROL</span>
+                    <span class="logo-icon">⚡</span>
+                    <span class="logo-text">D3mon</span>
                 </div>
                 <div class="status">
                     <span class="status-dot"></span>
-                    <span class="status-text">SISTEMA ACTIVO</span>
+                    <span class="status-text">SISTEMA OPERATIVO</span>
                 </div>
-                <nav class="main-nav">
-                    <button class="nav-btn active" data-section="dashboard">
-                        <i class="fas fa-th-large"></i> Dashboard
-                    </button>
-                    <button class="nav-btn" data-section="apps">
-                        <i class="fas fa-cubes"></i> Aplicaciones
-                    </button>
-                </nav>
             </div>
         </header>
 
         <!-- Contenido Principal -->
         <main class="amoled-main">
-            <!-- Dashboard -->
-            <section id="dashboard-section" class="content-section active">
+            <!-- Panel de Control -->
+            <section id="dashboard-section">
                 <div class="section-header">
                     <h1><i class="fas fa-terminal"></i> PANEL DE CONTROL</h1>
-                    <p>Centro de mando unificado - Dark Amoled Theme</p>
+                    <p>Centro de herramientas y utilidades</p>
                 </div>
-                <div class="dashboard-grid" id="dashboard-grid">
-                    <!-- Las cards se cargan aquí -->
-                </div>
-            </section>
 
-            <!-- Aplicaciones -->
-            <section id="apps-section" class="content-section">
-                <div class="section-header">
-                    <h1><i class="fas fa-cube"></i> MIS APLICACIONES</h1>
-                    <p>Todas tus herramientas en un solo lugar</p>
+                <!-- Estadísticas -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number">8</div>
+                        <div class="stat-label">Herramientas Activas</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">Disponibilidad</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">24/7</div>
+                        <div class="stat-label">Operatividad</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number">v2.0</div>
+                        <div class="stat-label">Versión Sistema</div>
+                    </div>
                 </div>
-                <div class="apps-grid" id="apps-grid">
-                    <!-- Las apps se cargan aquí -->
+
+                <!-- Grid de Herramientas -->
+                <div class="tools-grid" id="tools-grid">
+                    <!-- Las herramientas se cargan aquí -->
                 </div>
             </section>
         </main>
@@ -334,143 +369,111 @@
         <!-- Footer -->
         <footer class="amoled-footer">
             <div class="footer-content">
-                <span>NEXUS v2.0 - Dark Amoled</span>
+                <span>D3mon Control System v2.0</span>
                 <span id="system-time">--:--:--</span>
             </div>
         </footer>
     </div>
 
-    <!-- JavaScript Todo-en-Uno -->
+    <!-- JavaScript -->
     <script>
-        // CONFIGURACIÓN
-        const CONFIG = {
-            apps: [
+        // CONFIGURACIÓN DE HERRAMIENTAS
+        const D3MON_CONFIG = {
+            herramientas: [
                 {
                     id: "telegram-bot",
                     title: "🤖 Control Telegram",
-                    description: "Gestiona bots de Telegram",
+                    description: "Gestión avanzada de bots de Telegram con funciones automáticas",
                     icon: "fas fa-robot",
-                    url: "https://tusuario.github.io/telegram-bot-control/",
-                    category: "tools"
+                    url: "https://tuusuario.github.io/telegram-bot-control/",
+                    category: "Automation"
                 },
                 {
-                    id: "instagram-tools",
-                    title: "📸 Tools Instagram", 
-                    description: "Herramientas para Instagram",
+                    id: "instagram-suite",
+                    title: "📸 Suite Instagram", 
+                    description: "Herramientas profesionales para gestión de redes sociales",
                     icon: "fab fa-instagram",
-                    url: "https://tusuario.github.io/instagram-tools/",
-                    category: "social"
+                    url: "https://tuusuario.github.io/instagram-tools/",
+                    category: "Social"
                 },
                 {
                     id: "file-converter",
-                    title: "🔄 Convertidor",
-                    description: "Conversor de archivos",
+                    title: "🔄 Convertidor Pro",
+                    description: "Conversión avanzada entre múltiples formatos de archivo",
                     icon: "fas fa-file-export",
-                    url: "https://tusuario.github.io/file-converter/",
-                    category: "tools"
+                    url: "https://tuusuario.github.io/file-converter/",
+                    category: "Productivity"
                 },
                 {
-                    id: "password-manager",
-                    title: "🔐 Passwords",
-                    description: "Gestor de contraseñas",
+                    id: "security-vault",
+                    title: "🔐 Bóveda Segura",
+                    description: "Gestión y protección de credenciales sensibles",
                     icon: "fas fa-lock",
-                    url: "https://tusuario.github.io/password-manager/",
-                    category: "security"
-                }
-            ],
-            
-            dashboardCards: [
-                {
-                    title: "¡Bienvenido!",
-                    description: "Sistema Nexus activo con tema Dark Amoled",
-                    icon: "fas fa-star",
-                    type: "welcome"
+                    url: "https://tuusuario.github.io/password-manager/",
+                    category: "Security"
                 },
                 {
-                    title: "Aplicaciones",
-                    description: "4 herramientas disponibles",
-                    icon: "fas fa-cubes", 
-                    type: "stats"
+                    id: "network-scanner",
+                    title: "🌐 Escáner Red",
+                    description: "Análisis y monitorización de redes y dispositivos",
+                    icon: "fas fa-network-wired",
+                    url: "https://tuusuario.github.io/network-scanner/",
+                    category: "Network"
+                },
+                {
+                    id: "data-analyzer",
+                    title: "📊 Analizador Datos",
+                    description: "Procesamiento y visualización de datos en tiempo real",
+                    icon: "fas fa-chart-bar",
+                    url: "https://tuusuario.github.io/data-analyzer/",
+                    category: "Analytics"
+                },
+                {
+                    id: "code-editor",
+                    title: "💻 Editor Code",
+                    description: "Editor de código avanzado con múltiples lenguajes",
+                    icon: "fas fa-code",
+                    url: "https://tuusuario.github.io/code-editor/",
+                    category: "Development"
+                },
+                {
+                    id: "system-monitor",
+                    title: "📈 Monitor Sistema",
+                    description: "Monitorización en tiempo real del rendimiento",
+                    icon: "fas fa-tachometer-alt",
+                    url: "https://tuusuario.github.io/system-monitor/",
+                    category: "Monitoring"
                 }
             ]
         };
 
         // INICIALIZACIÓN
         document.addEventListener('DOMContentLoaded', function() {
-            initNavigation();
-            loadDashboard();
-            loadApps();
+            loadTools();
             updateClock();
+            
+            // Efecto de carga progresiva
+            setTimeout(() => {
+                document.body.style.opacity = '1';
+            }, 100);
         });
 
-        // NAVEGACIÓN
-        function initNavigation() {
-            const navButtons = document.querySelectorAll('.nav-btn');
+        // CARGAR HERRAMIENTAS
+        function loadTools() {
+            const grid = document.getElementById('tools-grid');
             
-            navButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    // Remover active de todos
-                    navButtons.forEach(btn => btn.classList.remove('active'));
-                    // Agregar active al clickeado
-                    this.classList.add('active');
-                    
-                    // Mostrar sección correspondiente
-                    const sectionId = this.getAttribute('data-section') + '-section';
-                    document.querySelectorAll('.content-section').forEach(section => {
-                        section.classList.remove('active');
-                    });
-                    document.getElementById(sectionId).classList.add('active');
-                });
-            });
-        }
-
-        // CARGAR DASHBOARD
-        function loadDashboard() {
-            const grid = document.getElementById('dashboard-grid');
-            
-            CONFIG.dashboardCards.forEach(card => {
-                const cardHTML = `
-                    <div class="card">
-                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                            <div class="app-icon">
-                                <i class="${card.icon}"></i>
-                            </div>
-                            <h3>${card.title}</h3>
+            D3MON_CONFIG.herramientas.forEach(tool => {
+                const toolHTML = `
+                    <div class="tool-card" onclick="window.open('${tool.url}', '_blank')">
+                        <div class="tool-icon">
+                            <i class="${tool.icon}"></i>
                         </div>
-                        <p style="color: var(--text-secondary); line-height: 1.5;">${card.description}</p>
-                        ${card.type === 'stats' ? `
-                            <div style="margin-top: 1rem; display: flex; gap: 1rem;">
-                                <span style="color: var(--neon-green); font-weight: bold;">4 Apps</span>
-                                <span style="color: var(--neon-cyan); font-weight: bold;">100% Online</span>
-                            </div>
-                        ` : ''}
+                        <h3 class="tool-title">${tool.title}</h3>
+                        <p class="tool-description">${tool.description}</p>
+                        <span class="tool-category">${tool.category}</span>
                     </div>
                 `;
-                grid.innerHTML += cardHTML;
-            });
-        }
-
-        // CARGAR APLICACIONES
-        function loadApps() {
-            const grid = document.getElementById('apps-grid');
-            
-            CONFIG.apps.forEach(app => {
-                const appHTML = `
-                    <div class="card app-card" onclick="window.open('${app.url}', '_blank')">
-                        <div class="app-icon">
-                            <i class="${app.icon}"></i>
-                        </div>
-                        <h3 class="app-title">${app.title}</h3>
-                        <p style="color: var(--text-secondary);">${app.description}</p>
-                        <div style="margin-top: 1rem;">
-                            <span style="background: rgba(0, 255, 65, 0.2); color: var(--neon-green); 
-                                      padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.8rem;">
-                                ${app.category}
-                            </span>
-                        </div>
-                    </div>
-                `;
-                grid.innerHTML += appHTML;
+                grid.innerHTML += toolHTML;
             });
         }
 
@@ -486,10 +489,32 @@
             setTimeout(updateClock, 1000);
         }
 
-        // MENSAJE DE INICIO
-        console.log('🚀 NEXUS CONTROL - Dark Amoled Theme');
-        console.log('🎯 Sistema cargado correctamente');
-        console.log('📱 ' + CONFIG.apps.length + ' aplicaciones configuradas');
+        // EFECTO DE TYPING EN EL TÍTULO
+        function typeWriter(element, text, speed = 100) {
+            let i = 0;
+            element.innerHTML = '';
+            
+            function typing() {
+                if (i < text.length) {
+                    element.innerHTML += text.charAt(i);
+                    i++;
+                    setTimeout(typing, speed);
+                }
+            }
+            typing();
+        }
+
+        // MENSAJE DE INICIO EN CONSOLA
+        console.log('%c⚡ D3mon Control System v2.0', 'color: #00ff41; font-size: 16px; font-weight: bold;');
+        console.log('%c🔧 Sistema cargado correctamente', 'color: #00ffff;');
+        console.log('%c🛠️ ' + D3MON_CONFIG.herramientas.length + ' herramientas operativas', 'color: #00ff41;');
+
+        // INICIALIZAR EFECTO DE TYPING (opcional)
+        setTimeout(() => {
+            const title = document.querySelector('.section-header h1');
+            const originalText = title.innerHTML;
+            typeWriter(title, originalText);
+        }, 1000);
     </script>
 </body>
     </html>
