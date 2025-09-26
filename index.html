@@ -39,6 +39,7 @@
             font-weight: bold;
             width: 100%;
             transition: all 0.3s ease;
+            margin-bottom: 20px;
         }
         button:hover { 
             background: #218838; 
@@ -87,14 +88,29 @@
             border-radius: 5px;
             font-weight: bold;
         }
+        .control-buttons {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .control-buttons button {
+            flex: 1;
+            font-size: 14px;
+            padding: 10px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🤖 ACTIVADOR DE LIKES MASIVOS</h1>
-        <p class="subtitle">Reacciona a TODAS las publicaciones del grupo</p>
+        <p class="subtitle">Reacciona a las publicaciones del grupo</p>
         
-        <button onclick="activarLikesMasivos()" id="boton">⚡ DAR LIKE A TODAS LAS PUBLICACIONES</button>
+        <div class="control-buttons">
+            <button onclick="probarConexion()" style="background: #17a2b8;">🔍 Probar Conexión</button>
+            <button onclick="obtenerUltimosMensajes()" style="background: #ffc107;">📨 Ver Últimos Mensajes</button>
+        </div>
+        
+        <button onclick="activarLikesMasivos()" id="boton">⚡ DAR LIKE A LAS PUBLICACIONES</button>
         
         <div class="stats">
             <span id="totalMensajes">Total: 0</span>
@@ -124,8 +140,6 @@
             const logEntry = document.createElement('div');
             logEntry.innerHTML = `<span class="${tipo}">[${timestamp}]</span> ${mensaje}`;
             document.getElementById('log').prepend(logEntry);
-            
-            // Actualizar estadísticas
             actualizarEstadisticas();
         }
 
@@ -135,19 +149,77 @@
             document.getElementById('exitosos').textContent = `Exitosos: ${mensajesExitosos}`;
             document.getElementById('fallidos').textContent = `Fallidos: ${mensajesFallidos}`;
             
-            // Actualizar barra de progreso
             if (totalMensajes > 0) {
                 const porcentaje = (mensajesProcesados / totalMensajes) * 100;
                 document.getElementById('progressBar').style.width = `${porcentaje}%`;
             }
         }
 
+        // Función para probar la conexión con el bot
+        async function probarConexion() {
+            log('🔍 Probando conexión con el bot...', 'info');
+            
+            try {
+                const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getMe`);
+                const data = await response.json();
+                
+                if (data.ok) {
+                    log(`✅ Bot conectado: ${data.result.first_name} (@${data.result.username})`, 'success');
+                } else {
+                    log(`❌ Error del bot: ${data.description}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ Error de conexión: ${error.message}`, 'error');
+            }
+        }
+
+        // Función para obtener los últimos mensajes (método correcto)
+        async function obtenerUltimosMensajes() {
+            log('📨 Obteniendo últimos mensajes del grupo...', 'info');
+            
+            try {
+                // Método CORRECTO para obtener mensajes de un grupo
+                const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/getUpdates`);
+                const data = await response.json();
+                
+                if (data.ok) {
+                    const updates = data.result || [];
+                    log(`✅ Se obtuvieron ${updates.length} updates`, 'success');
+                    
+                    // Filtrar solo los mensajes de nuestro grupo
+                    const mensajesDelGrupo = updates.filter(update => 
+                        update.message && update.message.chat && update.message.chat.id == CHAT_ID
+                    );
+                    
+                    log(`📊 Mensajes en el grupo: ${mensajesDelGrupo.length}`, 'warning');
+                    
+                    if (mensajesDelGrupo.length > 0) {
+                        mensajesDelGrupo.forEach((update, index) => {
+                            const msg = update.message;
+                            const texto = msg.text || msg.caption || '📎 Multimedia';
+                            log(`📝 Mensaje ${index + 1}: ID=${msg.message_id}, Texto="${texto.substring(0, 50)}..."`, 'info');
+                        });
+                    } else {
+                        log('💡 Envía un mensaje al grupo y vuelve a intentar', 'warning');
+                    }
+                    
+                    return mensajesDelGrupo;
+                } else {
+                    log(`❌ Error: ${data.description}`, 'error');
+                    return [];
+                }
+            } catch (error) {
+                log(`❌ Error: ${error.message}`, 'error');
+                return [];
+            }
+        }
+
+        // Función principal para dar likes
         async function activarLikesMasivos() {
             const boton = document.getElementById('boton');
             boton.disabled = true;
             boton.textContent = '⏳ ESCANEANDO GRUPO...';
             
-            // Resetear contadores
             totalMensajes = 0;
             mensajesProcesados = 0;
             mensajesExitosos = 0;
@@ -157,117 +229,93 @@
             log('🚀 INICIANDO LIKES MASIVOS...', 'info');
             
             try {
-                // Obtener TODOS los mensajes del grupo
-                log('📡 Escaneando grupo para obtener todas las publicaciones...', 'info');
-                const todosLosMensajes = await obtenerTodosLosMensajes();
+                // Obtener mensajes usando getUpdates (método que SÍ funciona)
+                log('📡 Obteniendo mensajes del grupo...', 'info');
+                const mensajes = await obtenerUltimosMensajes();
                 
-                if (todosLosMensajes.length === 0) {
-                    throw new Error('No se encontraron publicaciones en el grupo');
+                if (mensajes.length === 0) {
+                    // Si no hay mensajes recientes, probar con un rango de IDs
+                    log('🔍 Probando con IDs específicos...', 'warning');
+                    await procesarPorRangoDeIDs();
+                    return;
                 }
                 
-                totalMensajes = todosLosMensajes.length;
-                log(`🎯 Se encontraron ${totalMensajes} publicaciones para procesar`, 'success');
+                totalMensajes = mensajes.length;
+                log(`🎯 Se encontraron ${totalMensajes} publicaciones recientes`, 'success');
+                
+                if (totalMensajes === 0) {
+                    throw new Error('No hay mensajes recientes en el grupo. Envía un mensaje primero.');
+                }
                 
                 boton.textContent = `⏳ PROCESANDO ${totalMensajes} PUBLICACIONES...`;
                 
-                // Procesar todos los mensajes
-                for (let i = 0; i < todosLosMensajes.length; i++) {
-                    const mensaje = todosLosMensajes[i];
-                    const texto = mensaje.text || mensaje.caption || '📎 Multimedia';
-                    const preview = texto.substring(0, 40) + (texto.length > 40 ? '...' : '');
-                    
-                    log(`📝 [${i + 1}/${totalMensajes}] Procesando: "${preview}"`, 'info');
-                    
-                    const resultado = await enviarLike(mensaje.message_id);
-                    
-                    mensajesProcesados++;
-                    
-                    if (resultado) {
-                        log(`✅ LIKE enviado a publicación ${i + 1}`, 'success');
-                        mensajesExitosos++;
-                    } else {
-                        log(`❌ Error con publicación ${i + 1}`, 'error');
-                        mensajesFallidos++;
-                    }
-                    
-                    // Esperar entre 0.5 y 1.5 segundos para evitar rate limiting
-                    const delay = 500 + Math.random() * 1000;
-                    await new Promise(resolve => setTimeout(resolve, delay));
-                    
-                    // Actualizar botón con progreso
-                    boton.textContent = `⏳ ${mensajesProcesados}/${totalMensajes} (${Math.round((mensajesProcesados/totalMensajes)*100)}%)`;
+                // Procesar los mensajes encontrados
+                for (let i = 0; i < mensajes.length; i++) {
+                    const mensaje = mensajes[i].message;
+                    await procesarMensaje(mensaje, i);
                 }
                 
                 log(`🎉 ¡PROCESO COMPLETADO! ✅ ${mensajesExitosos} exitosos | ❌ ${mensajesFallidos} fallidos`, 'success');
                 boton.textContent = '🎉 ¡PROCESO COMPLETADO!';
                 
             } catch (error) {
-                log(`💥 ERROR GRAVE: ${error.message}`, 'error');
+                log(`💥 ERROR: ${error.message}`, 'error');
                 boton.textContent = '❌ ERROR - REINTENTAR';
             } finally {
                 setTimeout(() => {
                     boton.disabled = false;
-                    boton.textContent = '⚡ DAR LIKE A TODAS LAS PUBLICACIONES';
+                    boton.textContent = '⚡ DAR LIKE A LAS PUBLICACIONES';
                 }, 3000);
             }
         }
 
-        async function obtenerTodosLosMensajes() {
-            let todosLosMensajes = [];
-            let offsetId = 0;
-            let hasMore = true;
-            let intentos = 0;
-            const maxIntentos = 100; // Límite de seguridad
-
-            while (hasMore && intentos < maxIntentos) {
-                intentos++;
-                const mensajes = await obtenerMensajesPorLote(offsetId);
+        // Procesar mensajes probando un rango de IDs
+        async function procesarPorRangoDeIDs() {
+            log('🔍 Probando con IDs del 1 al 50...', 'warning');
+            const idsAProbar = Array.from({length: 50}, (_, i) => i + 1);
+            totalMensajes = idsAProbar.length;
+            
+            for (let i = 0; i < idsAProbar.length; i++) {
+                const messageId = idsAProbar[i];
+                const resultado = await enviarLike(messageId);
                 
-                if (mensajes.length > 0) {
-                    todosLosMensajes = todosLosMensajes.concat(mensajes);
-                    offsetId = mensajes[mensajes.length - 1].message_id;
-                    log(`📦 Lote ${intentos}: +${mensajes.length} mensajes (Total: ${todosLosMensajes.length})`, 'warning');
+                mensajesProcesados++;
+                
+                if (resultado) {
+                    log(`✅ LIKE enviado a ID ${messageId}`, 'success');
+                    mensajesExitosos++;
                 } else {
-                    hasMore = false;
+                    // No mostrar error para cada ID, solo los exitosos
                 }
                 
-                // Pequeña pausa entre lotes
-                await new Promise(resolve => setTimeout(resolve, 200));
+                await new Promise(resolve => setTimeout(resolve, 300));
+                
+                document.getElementById('boton').textContent = 
+                    `⏳ ${mensajesProcesados}/${totalMensajes} (${Math.round((mensajesProcesados/totalMensajes)*100)}%)`;
             }
-            
-            log(`📊 Obtención completada: ${todosLosMensajes.length} mensajes en ${intentos} lotes`, 'success');
-            return todosLosMensajes;
         }
 
-        async function obtenerMensajesPorLote(offsetId = 0) {
-            const url = `https://api.telegram.org/bot${BOT_TOKEN}/getChatHistory`;
-            const payload = {
-                chat_id: CHAT_ID,
-                limit: 100, // Máximo por lote
-                from_message_id: offsetId
-            };
-
-            try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await response.json();
-                
-                if (data.ok) {
-                    return data.result || [];
-                } else {
-                    log(`⚠️ Error en lote: ${data.description}`, 'error');
-                    return [];
-                }
-            } catch (error) {
-                log(`⚠️ Error de conexión: ${error.message}`, 'error');
-                return [];
+        async function procesarMensaje(mensaje, index) {
+            const texto = mensaje.text || mensaje.caption || '📎 Multimedia';
+            const preview = texto.substring(0, 40) + (texto.length > 40 ? '...' : '');
+            
+            log(`📝 [${index + 1}/${totalMensajes}] Procesando: "${preview}"`, 'info');
+            
+            const resultado = await enviarLike(mensaje.message_id);
+            
+            mensajesProcesados++;
+            
+            if (resultado) {
+                log(`✅ LIKE enviado a publicación ${index + 1}`, 'success');
+                mensajesExitosos++;
+            } else {
+                log(`❌ Error con publicación ${index + 1}`, 'error');
+                mensajesFallidos++;
             }
+            
+            await new Promise(resolve => setTimeout(resolve, 800));
+            document.getElementById('boton').textContent = 
+                `⏳ ${mensajesProcesados}/${totalMensajes} (${Math.round((mensajesProcesados/totalMensajes)*100)}%)`;
         }
 
         async function enviarLike(messageId) {
@@ -276,14 +324,13 @@
                 const payload = {
                     chat_id: CHAT_ID,
                     message_id: messageId,
-                    reaction: [{ type: "emoji", emoji: "👍" }]
+                    reaction: '[{"type": "emoji", "emoji": "👍"}]'
                 };
 
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
-                    'Accept': 'application/json'
                     },
                     body: JSON.stringify(payload)
                 });
@@ -291,15 +338,15 @@
                 const data = await response.json();
                 return data.ok === true;
             } catch (error) {
-                console.error('Error enviando like:', error);
                 return false;
             }
         }
 
-        // Diagnóstico al cargar la página
-        window.addEventListener('load', async () => {
-            log('🔍 Sistema de likes masivos cargado y listo', 'success');
+        // Inicialización
+        window.addEventListener('load', () => {
+            log('🔍 Sistema de likes cargado y listo', 'success');
+            probarConexion();
         });
     </script>
 </body>
-    </html>
+</html>
