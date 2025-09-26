@@ -1,57 +1,305 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Bot Likes</title>
+    <title>Bot Likes - TODAS las Publicaciones</title>
     <style>
-        body { font-family: Arial; background: #f0f0f0; padding: 50px; text-align: center; }
-        button { background: #28a745; color: white; padding: 15px 30px; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; }
-        button:hover { background: #218838; }
-        #log { margin-top: 20px; text-align: left; background: white; padding: 15px; border-radius: 5px; }
+        body { 
+            font-family: Arial, sans-serif; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        button { 
+            background: #28a745; 
+            color: white; 
+            padding: 15px 30px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            font-size: 18px;
+            font-weight: bold;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+        button:hover { 
+            background: #218838; 
+            transform: translateY(-2px);
+        }
+        button:disabled { 
+            background: #ccc; 
+            cursor: not-allowed;
+            transform: none;
+        }
+        #log { 
+            margin-top: 20px; 
+            background: #f8f9fa; 
+            padding: 20px; 
+            border-radius: 10px;
+            border-left: 5px solid #007bff;
+            max-height: 500px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .success { color: #28a745; font-weight: bold; }
+        .error { color: #dc3545; font-weight: bold; }
+        .warning { color: #ffc107; font-weight: bold; }
+        .info { color: #17a2b8; }
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #28a745, #20c997);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
-    <h1>🤖 Activador de Likes</h1>
-    <button onclick="activarLikes()">⚡ Dar Like a 5 Publicaciones</button>
-    <div id="log"></div>
+    <div class="container">
+        <h1>🤖 ACTIVADOR DE LIKES MASIVOS</h1>
+        <p class="subtitle">Reacciona a TODAS las publicaciones del grupo</p>
+        
+        <button onclick="activarLikesMasivos()" id="boton">⚡ DAR LIKE A TODAS LAS PUBLICACIONES</button>
+        
+        <div class="stats">
+            <span id="totalMensajes">Total: 0</span>
+            <span id="procesados">Procesados: 0</span>
+            <span id="exitosos">Exitosos: 0</span>
+            <span id="fallidos">Fallidos: 0</span>
+        </div>
+        
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressBar"></div>
+        </div>
+        
+        <div id="log"></div>
+    </div>
 
     <script>
         const BOT_TOKEN = '6516180762:AAHE5RGPH1kpADaABDGzQLt0962277Nlg1I';
         const CHAT_ID = '-1002151881682';
 
-        function log(mensaje) {
-            document.getElementById('log').innerHTML += `<div>${new Date().toLocaleTimeString()}: ${mensaje}</div>`;
+        let totalMensajes = 0;
+        let mensajesProcesados = 0;
+        let mensajesExitosos = 0;
+        let mensajesFallidos = 0;
+
+        function log(mensaje, tipo = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.innerHTML = `<span class="${tipo}">[${timestamp}]</span> ${mensaje}`;
+            document.getElementById('log').prepend(logEntry);
+            
+            // Actualizar estadísticas
+            actualizarEstadisticas();
         }
 
-        async function activarLikes() {
-            log('🚀 Iniciando bot de likes...');
+        function actualizarEstadisticas() {
+            document.getElementById('totalMensajes').textContent = `Total: ${totalMensajes}`;
+            document.getElementById('procesados').textContent = `Procesados: ${mensajesProcesados}`;
+            document.getElementById('exitosos').textContent = `Exitosos: ${mensajesExitosos}`;
+            document.getElementById('fallidos').textContent = `Fallidos: ${mensajesFallidos}`;
             
-            for (let i = 1; i <= 5; i++) {
-                try {
-                    const response = await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/setMessageReaction`, {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({
-                            chat_id: CHAT_ID,
-                            message_id: i, // Asume que los IDs son secuenciales
-                            reaction: [{type: "emoji", emoji: "👍"}]
-                        })
-                    });
-                    
-                    if (response.ok) {
-                        log(`✅ Like enviado a publicación ${i}`);
-                    } else {
-                        log(`❌ Error con publicación ${i}`);
-                    }
-                } catch (error) {
-                    log(`❌ Error: ${error.message}`);
+            // Actualizar barra de progreso
+            if (totalMensajes > 0) {
+                const porcentaje = (mensajesProcesados / totalMensajes) * 100;
+                document.getElementById('progressBar').style.width = `${porcentaje}%`;
+            }
+        }
+
+        async function activarLikesMasivos() {
+            const boton = document.getElementById('boton');
+            boton.disabled = true;
+            boton.textContent = '⏳ ESCANEANDO GRUPO...';
+            
+            // Resetear contadores
+            totalMensajes = 0;
+            mensajesProcesados = 0;
+            mensajesExitosos = 0;
+            mensajesFallidos = 0;
+            document.getElementById('log').innerHTML = '';
+            
+            log('🚀 INICIANDO LIKES MASIVOS...', 'info');
+            
+            try {
+                // Obtener TODOS los mensajes del grupo
+                log('📡 Escaneando grupo para obtener todas las publicaciones...', 'info');
+                const todosLosMensajes = await obtenerTodosLosMensajes();
+                
+                if (todosLosMensajes.length === 0) {
+                    throw new Error('No se encontraron publicaciones en el grupo');
                 }
                 
-                // Esperar 1 segundo
-                await new Promise(resolve => setTimeout(resolve, 1000));
+                totalMensajes = todosLosMensajes.length;
+                log(`🎯 Se encontraron ${totalMensajes} publicaciones para procesar`, 'success');
+                
+                boton.textContent = `⏳ PROCESANDO ${totalMensajes} PUBLICACIONES...`;
+                
+                // Procesar todos los mensajes
+                for (let i = 0; i < todosLosMensajes.length; i++) {
+                    const mensaje = todosLosMensajes[i];
+                    const texto = mensaje.text || mensaje.caption || '📎 Multimedia';
+                    const preview = texto.substring(0, 40) + (texto.length > 40 ? '...' : '');
+                    
+                    log(`📝 [${i + 1}/${totalMensajes}] Procesando: "${preview}"`, 'info');
+                    
+                    const resultado = await enviarLike(mensaje.message_id);
+                    
+                    mensajesProcesados++;
+                    
+                    if (resultado) {
+                        log(`✅ LIKE enviado a publicación ${i + 1}`, 'success');
+                        mensajesExitosos++;
+                    } else {
+                        log(`❌ Error con publicación ${i + 1}`, 'error');
+                        mensajesFallidos++;
+                    }
+                    
+                    // Esperar entre 0.5 y 1.5 segundos para evitar rate limiting
+                    const delay = 500 + Math.random() * 1000;
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                    
+                    // Actualizar botón con progreso
+                    boton.textContent = `⏳ ${mensajesProcesados}/${totalMensajes} (${Math.round((mensajesProcesados/totalMensajes)*100)}%)`;
+                }
+                
+                log(`🎉 ¡PROCESO COMPLETADO! ✅ ${mensajesExitosos} exitosos | ❌ ${mensajesFallidos} fallidos`, 'success');
+                boton.textContent = '🎉 ¡PROCESO COMPLETADO!';
+                
+            } catch (error) {
+                log(`💥 ERROR GRAVE: ${error.message}`, 'error');
+                boton.textContent = '❌ ERROR - REINTENTAR';
+            } finally {
+                setTimeout(() => {
+                    boton.disabled = false;
+                    boton.textContent = '⚡ DAR LIKE A TODAS LAS PUBLICACIONES';
+                }, 3000);
+            }
+        }
+
+        async function obtenerTodosLosMensajes() {
+            let todosLosMensajes = [];
+            let offsetId = 0;
+            let hasMore = true;
+            let intentos = 0;
+            const maxIntentos = 100; // Límite de seguridad
+
+            while (hasMore && intentos < maxIntentos) {
+                intentos++;
+                const mensajes = await obtenerMensajesPorLote(offsetId);
+                
+                if (mensajes.length > 0) {
+                    todosLosMensajes = todosLosMensajes.concat(mensajes);
+                    offsetId = mensajes[mensajes.length - 1].message_id;
+                    log(`📦 Lote ${intentos}: +${mensajes.length} mensajes (Total: ${todosLosMensajes.length})`, 'warning');
+                } else {
+                    hasMore = false;
+                }
+                
+                // Pequeña pausa entre lotes
+                await new Promise(resolve => setTimeout(resolve, 200));
             }
             
-            log('🎉 Proceso completado!');
+            log(`📊 Obtención completada: ${todosLosMensajes.length} mensajes en ${intentos} lotes`, 'success');
+            return todosLosMensajes;
         }
+
+        async function obtenerMensajesPorLote(offsetId = 0) {
+            const url = `https://api.telegram.org/bot${BOT_TOKEN}/getChatHistory`;
+            const payload = {
+                chat_id: CHAT_ID,
+                limit: 100, // Máximo por lote
+                from_message_id: offsetId
+            };
+
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                
+                if (data.ok) {
+                    return data.result || [];
+                } else {
+                    log(`⚠️ Error en lote: ${data.description}`, 'error');
+                    return [];
+                }
+            } catch (error) {
+                log(`⚠️ Error de conexión: ${error.message}`, 'error');
+                return [];
+            }
+        }
+
+        async function enviarLike(messageId) {
+            try {
+                const url = `https://api.telegram.org/bot${BOT_TOKEN}/setMessageReaction`;
+                const payload = {
+                    chat_id: CHAT_ID,
+                    message_id: messageId,
+                    reaction: [{ type: "emoji", emoji: "👍" }]
+                };
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+
+                const data = await response.json();
+                return data.ok === true;
+            } catch (error) {
+                console.error('Error enviando like:', error);
+                return false;
+            }
+        }
+
+        // Diagnóstico al cargar la página
+        window.addEventListener('load', async () => {
+            log('🔍 Sistema de likes masivos cargado y listo', 'success');
+        });
     </script>
 </body>
-</html>
+    </html>
