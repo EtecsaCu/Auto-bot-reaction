@@ -1,0 +1,213 @@
+/* Cards Base */
+.card {
+    background: var(--amoled-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 255, 65, 0.1), transparent);
+    transition: left 0.6s ease;
+}
+
+.card:hover::before {
+    left: 100%;
+}
+
+.card:hover {
+    border-color: var(--neon-green);
+    box-shadow: 0 0 20px var(--neon-green-glow);
+    transform: translateY(-5px);
+}
+
+/* Card de Dashboard */
+.dashboard-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.card-icon {
+    width: 50px;
+    height: 50px;
+    background: rgba(0, 255, 65, 0.1);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    color: var(--neon-green);
+}
+
+.card-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.card-description {
+    color: var(--text-secondary);
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.card-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-top: auto;
+}
+
+.stat {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--neon-green);
+    font-family: 'Courier New', monospace;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* App Cards */
+.app-card {
+    text-align: center;
+    cursor: pointer;
+}
+
+.app-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 1rem;
+    background: rgba(0, 255, 65, 0.1);
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: var(--neon-green);
+    transition: all 0.3s ease;
+}
+
+.app-card:hover .app-icon {
+    background: rgba(0, 255, 65, 0.2);
+    transform: scale(1.1);
+}
+
+.app-title {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.app-description {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Botones */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.btn-primary {
+    background: linear-gradient(45deg, var(--neon-green), var(--neon-cyan));
+    color: black;
+    font-weight: 600;
+}
+
+.btn-primary:hover {
+    box-shadow: 0 0 20px var(--neon-green-glow);
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: transparent;
+    border: 1px solid var(--neon-green);
+    color: var(--neon-green);
+}
+
+.btn-secondary:hover {
+    background: rgba(0, 255, 65, 0.1);
+    box-shadow: 0 0 15px var(--neon-green-glow);
+}
+
+/* Badges */
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.badge-success {
+    background: rgba(0, 255, 136, 0.2);
+    color: var(--success);
+    border: 1px solid var(--success);
+}
+
+.badge-warning {
+    background: rgba(255, 170, 0, 0.2);
+    color: var(--warning);
+    border: 1px solid var(--warning);
+}
+
+.badge-new {
+    background: rgba(0, 255, 65, 0.2);
+    color: var(--neon-green);
+    border: 1px solid var(--neon-green);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .main-nav {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .dashboard-grid,
+    .apps-grid,
+    .tools-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .amoled-main {
+        padding: 1rem;
+    }
+}
