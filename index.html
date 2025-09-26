@@ -4,28 +4,296 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NEXUS | Centro de Control</title>
-    <link rel="stylesheet" href="assets/css/main.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* === RESET Y VARIABLES === */
+        :root {
+            --amoled-black: #000000;
+            --amoled-dark: #0a0a0a;
+            --amoled-card: #111111;
+            --neon-green: #00ff41;
+            --neon-green-glow: #00ff4177;
+            --neon-cyan: #00ffff;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --text-muted: #666666;
+            --border-color: #222222;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--amoled-black);
+            color: var(--text-primary);
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* === EFECTOS DE FONDO === */
+        .matrix-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(0, 255, 65, 0.02) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 255, 65, 0.03) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: -2;
+        }
+
+        .grid-lines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        /* === ESTRUCTURA PRINCIPAL === */
+        .main-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* === HEADER === */
+        .amoled-header {
+            background: rgba(10, 10, 10, 0.95);
+            border-bottom: 1px solid var(--border-color);
+            backdrop-filter: blur(10px);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .logo-icon {
+            color: var(--neon-green);
+            font-size: 2rem;
+            animation: pulse 2s infinite;
+        }
+
+        .logo-text {
+            background: linear-gradient(45deg, var(--neon-green), var(--neon-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--neon-green);
+            border-radius: 50%;
+            animation: blink 1.5s infinite;
+        }
+
+        .main-nav {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn.active {
+            background: rgba(0, 255, 65, 0.1);
+            border-color: var(--neon-green);
+            color: var(--neon-green);
+        }
+
+        /* === CONTENIDO PRINCIPAL === */
+        .amoled-main {
+            flex: 1;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            width: 100%;
+        }
+
+        .content-section {
+            display: none;
+        }
+
+        .content-section.active {
+            display: block;
+            animation: fadeIn 0.5s ease-in;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .section-header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, var(--neon-green), var(--neon-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* === GRIDS Y CARDS === */
+        .dashboard-grid,
+        .apps-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .card {
+            background: var(--amoled-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--neon-green);
+            transform: translateY(-2px);
+        }
+
+        .app-card {
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .app-icon {
+            width: 60px;
+            height: 60px;
+            margin: 0 auto 1rem;
+            background: rgba(0, 255, 65, 0.1);
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            color: var(--neon-green);
+        }
+
+        .app-title {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* === FOOTER === */
+        .amoled-footer {
+            background: rgba(10, 10, 10, 0.95);
+            border-top: 1px solid var(--border-color);
+            margin-top: auto;
+        }
+
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-secondary);
+        }
+
+        /* === ANIMACIONES === */
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* === RESPONSIVE === */
+        @media (max-width: 768px) {
+            .header-content {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .dashboard-grid,
+            .apps-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .amoled-main {
+                padding: 1rem;
+            }
+        }
+    </style>
 </head>
 <body>
-    <!-- Background Effects -->
+    <!-- Efectos de Fondo -->
     <div class="matrix-bg"></div>
     <div class="grid-lines"></div>
     
-    <!-- Main Container -->
+    <!-- Contenedor Principal -->
     <div class="main-container">
         <!-- Header -->
         <header class="amoled-header">
             <div class="header-content">
-                <div class="logo-section">
-                    <div class="logo">
-                        <span class="logo-icon">⟁</span>
-                        <span class="logo-text">NEXUS</span>
-                    </div>
-                    <div class="status">
-                        <span class="status-dot"></span>
-                        <span class="status-text">SISTEMA ACTIVO</span>
-                    </div>
+                <div class="logo">
+                    <span class="logo-icon">⟁</span>
+                    <span class="logo-text">NEXUS CONTROL</span>
+                </div>
+                <div class="status">
+                    <span class="status-dot"></span>
+                    <span class="status-text">SISTEMA ACTIVO</span>
                 </div>
                 <nav class="main-nav">
                     <button class="nav-btn active" data-section="dashboard">
@@ -34,45 +302,31 @@
                     <button class="nav-btn" data-section="apps">
                         <i class="fas fa-cubes"></i> Aplicaciones
                     </button>
-                    <button class="nav-btn" data-section="tools">
-                        <i class="fas fa-tools"></i> Herramientas
-                    </button>
                 </nav>
             </div>
         </header>
 
-        <!-- Main Content -->
+        <!-- Contenido Principal -->
         <main class="amoled-main">
-            <!-- Dashboard Section -->
+            <!-- Dashboard -->
             <section id="dashboard-section" class="content-section active">
                 <div class="section-header">
-                    <h1><i class="fas fa-terminal"></i> PANEL PRINCIPAL</h1>
-                    <p>Bienvenido al centro de control unificado</p>
+                    <h1><i class="fas fa-terminal"></i> PANEL DE CONTROL</h1>
+                    <p>Centro de mando unificado - Dark Amoled Theme</p>
                 </div>
                 <div class="dashboard-grid" id="dashboard-grid">
-                    <!-- Los cards se cargan dinámicamente -->
+                    <!-- Las cards se cargan aquí -->
                 </div>
             </section>
 
-            <!-- Apps Section -->
+            <!-- Aplicaciones -->
             <section id="apps-section" class="content-section">
                 <div class="section-header">
-                    <h1><i class="fas fa-cube"></i> APLICACIONES</h1>
-                    <p>Gestiona todas tus herramientas</p>
+                    <h1><i class="fas fa-cube"></i> MIS APLICACIONES</h1>
+                    <p>Todas tus herramientas en un solo lugar</p>
                 </div>
                 <div class="apps-grid" id="apps-grid">
-                    <!-- Las apps se cargan dinámicamente -->
-                </div>
-            </section>
-
-            <!-- Tools Section -->
-            <section id="tools-section" class="content-section">
-                <div class="section-header">
-                    <h1><i class="fas fa-wrench"></i> HERRAMIENTAS</h1>
-                    <p>Utilidades y configuraciones</p>
-                </div>
-                <div class="tools-grid" id="tools-grid">
-                    <!-- Las herramientas se cargan dinámicamente -->
+                    <!-- Las apps se cargan aquí -->
                 </div>
             </section>
         </main>
@@ -80,14 +334,162 @@
         <!-- Footer -->
         <footer class="amoled-footer">
             <div class="footer-content">
-                <span>NEXUS CONTROL v1.0</span>
-                <span class="system-time" id="system-time">--:--:--</span>
+                <span>NEXUS v2.0 - Dark Amoled</span>
+                <span id="system-time">--:--:--</span>
             </div>
         </footer>
     </div>
 
-    <!-- Scripts -->
-    <script src="assets/js/config.js"></script>
-    <script src="assets/js/app.js"></script>
+    <!-- JavaScript Todo-en-Uno -->
+    <script>
+        // CONFIGURACIÓN
+        const CONFIG = {
+            apps: [
+                {
+                    id: "telegram-bot",
+                    title: "🤖 Control Telegram",
+                    description: "Gestiona bots de Telegram",
+                    icon: "fas fa-robot",
+                    url: "https://tusuario.github.io/telegram-bot-control/",
+                    category: "tools"
+                },
+                {
+                    id: "instagram-tools",
+                    title: "📸 Tools Instagram", 
+                    description: "Herramientas para Instagram",
+                    icon: "fab fa-instagram",
+                    url: "https://tusuario.github.io/instagram-tools/",
+                    category: "social"
+                },
+                {
+                    id: "file-converter",
+                    title: "🔄 Convertidor",
+                    description: "Conversor de archivos",
+                    icon: "fas fa-file-export",
+                    url: "https://tusuario.github.io/file-converter/",
+                    category: "tools"
+                },
+                {
+                    id: "password-manager",
+                    title: "🔐 Passwords",
+                    description: "Gestor de contraseñas",
+                    icon: "fas fa-lock",
+                    url: "https://tusuario.github.io/password-manager/",
+                    category: "security"
+                }
+            ],
+            
+            dashboardCards: [
+                {
+                    title: "¡Bienvenido!",
+                    description: "Sistema Nexus activo con tema Dark Amoled",
+                    icon: "fas fa-star",
+                    type: "welcome"
+                },
+                {
+                    title: "Aplicaciones",
+                    description: "4 herramientas disponibles",
+                    icon: "fas fa-cubes", 
+                    type: "stats"
+                }
+            ]
+        };
+
+        // INICIALIZACIÓN
+        document.addEventListener('DOMContentLoaded', function() {
+            initNavigation();
+            loadDashboard();
+            loadApps();
+            updateClock();
+        });
+
+        // NAVEGACIÓN
+        function initNavigation() {
+            const navButtons = document.querySelectorAll('.nav-btn');
+            
+            navButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remover active de todos
+                    navButtons.forEach(btn => btn.classList.remove('active'));
+                    // Agregar active al clickeado
+                    this.classList.add('active');
+                    
+                    // Mostrar sección correspondiente
+                    const sectionId = this.getAttribute('data-section') + '-section';
+                    document.querySelectorAll('.content-section').forEach(section => {
+                        section.classList.remove('active');
+                    });
+                    document.getElementById(sectionId).classList.add('active');
+                });
+            });
+        }
+
+        // CARGAR DASHBOARD
+        function loadDashboard() {
+            const grid = document.getElementById('dashboard-grid');
+            
+            CONFIG.dashboardCards.forEach(card => {
+                const cardHTML = `
+                    <div class="card">
+                        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                            <div class="app-icon">
+                                <i class="${card.icon}"></i>
+                            </div>
+                            <h3>${card.title}</h3>
+                        </div>
+                        <p style="color: var(--text-secondary); line-height: 1.5;">${card.description}</p>
+                        ${card.type === 'stats' ? `
+                            <div style="margin-top: 1rem; display: flex; gap: 1rem;">
+                                <span style="color: var(--neon-green); font-weight: bold;">4 Apps</span>
+                                <span style="color: var(--neon-cyan); font-weight: bold;">100% Online</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+                grid.innerHTML += cardHTML;
+            });
+        }
+
+        // CARGAR APLICACIONES
+        function loadApps() {
+            const grid = document.getElementById('apps-grid');
+            
+            CONFIG.apps.forEach(app => {
+                const appHTML = `
+                    <div class="card app-card" onclick="window.open('${app.url}', '_blank')">
+                        <div class="app-icon">
+                            <i class="${app.icon}"></i>
+                        </div>
+                        <h3 class="app-title">${app.title}</h3>
+                        <p style="color: var(--text-secondary);">${app.description}</p>
+                        <div style="margin-top: 1rem;">
+                            <span style="background: rgba(0, 255, 65, 0.2); color: var(--neon-green); 
+                                      padding: 0.2rem 0.5rem; border-radius: 10px; font-size: 0.8rem;">
+                                ${app.category}
+                            </span>
+                        </div>
+                    </div>
+                `;
+                grid.innerHTML += appHTML;
+            });
+        }
+
+        // RELOJ DEL SISTEMA
+        function updateClock() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('es-ES', { 
+                hour: '2-digit', 
+                minute: '2-digit', 
+                second: '2-digit' 
+            });
+            document.getElementById('system-time').textContent = timeString;
+            setTimeout(updateClock, 1000);
+        }
+
+        // MENSAJE DE INICIO
+        console.log('🚀 NEXUS CONTROL - Dark Amoled Theme');
+        console.log('🎯 Sistema cargado correctamente');
+        console.log('📱 ' + CONFIG.apps.length + ' aplicaciones configuradas');
+    </script>
 </body>
-                </html>
+    </html>
